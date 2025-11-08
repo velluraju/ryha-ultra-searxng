@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ryha-searxng-deployment
+  namespace: ryha-searxng
+  labels:
+    app: ryha-ultra-searxng
+    component: searxng
+spec:
+  replicas: 3  # High availability with 3 instances for ultra-fast load distribution
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: ryha-ultra-searxng
+      component: searxng
+  template:
+    metadata:
+      labels:
+        app: ryha-ultra-searxng
+        component: searxng
+    spec:
+      containers:
+      - name: searxng
+        image: searxng/searxng:latest
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        - name: SEARXNG_SECRET
+          value: "ryha-ai-ultra-fast-kubernetes-2024-advanced-anti-captcha"
+        - name: UWSGI_WORKERS
+          value: "8"
+        - name: UWSGI_THREADS
+          value: "6"
+        - name: UWSGI_BUFFER_SIZE
+          value: "65536"
+        - name: UWSGI_MAX_REQUESTS
+          value: "10000"
+        - name: UWSGI_HARAKIRI
+          value: "30"
+        volumeMounts:
+        - name: searxng-config-volume
+          mountPath: /etc/searxng/settings.yml
+          subPath: settings.yml
+          readOnly: true
+        resources:
+          requests:
+            memory: "1.5Gi"
+            cpu: "750m"
+          limits:
+            memory: "3Gi"
+            cpu: "1500m"
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 45
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 977
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: searxng-config-volume
+        configMap:
+          name: searxng-config
+          defaultMode: 0644
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext:
+        fsGroup: 977
