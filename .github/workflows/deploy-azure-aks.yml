@@ -1,0 +1,90 @@
+name: Deploy RYHA Ultra SearXNG to Azure AKS
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Manual trigger
+
+env:
+  AZURE_RESOURCE_GROUP: ryha-searxng-production
+  AZURE_AKS_CLUSTER: ryha-searxng-aks
+  AZURE_LOCATION: centralindia
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+        
+    - name: Get AKS credentials
+      run: |
+        az aks get-credentials \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --name ${{ env.AZURE_AKS_CLUSTER }} \
+          --overwrite-existing
+          
+    - name: Deploy to AKS
+      run: |
+        echo "🚀 Deploying RYHA Ultra SearXNG to Azure Kubernetes Service..."
+        
+        # Apply all manifests in order
+        kubectl apply -f kubernetes/01-namespace.yaml
+        kubectl apply -f kubernetes/02-configmap.yaml
+        kubectl apply -f kubernetes/03-deployment.yaml
+        kubectl apply -f kubernetes/04-service.yaml
+        kubectl apply -f kubernetes/05-ingress.yaml
+        kubectl apply -f kubernetes/06-pod-disruption-budget.yaml
+        kubectl apply -f kubernetes/07-hpa.yaml
+        
+        echo "✅ All manifests applied successfully!"
+        
+    - name: Wait for deployment
+      run: |
+        echo "⏳ Waiting for deployment to be ready..."
+        kubectl wait --for=condition=available --timeout=600s deployment/ryha-searxng-deployment -n ryha-searxng
+        echo "✅ Deployment is ready!"
+        
+    - name: Get service info
+      run: |
+        echo "🌐 Getting service information..."
+        kubectl get service ryha-searxng-service -n ryha-searxng -o wide
+        
+        echo "📊 Getting pod status..."
+        kubectl get pods -n ryha-searxng -o wide
+        
+        echo "🔗 Waiting for external IP..."
+        kubectl get service ryha-searxng-service -n ryha-searxng --watch --timeout=300s
+        
+    - name: Display deployment summary
+      run: |
+        echo "🎉 RYHA Ultra SearXNG Deployment Summary:"
+        echo "=================================================="
+        
+        EXTERNAL_IP=$(kubectl get service ryha-searxng-service -n ryha-searxng -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        if [ ! -z "$EXTERNAL_IP" ]; then
+          echo "✅ External IP: $EXTERNAL_IP"
+          echo "🌐 Access URL: http://$EXTERNAL_IP"
+        else
+          echo "⏳ External IP is pending allocation..."
+        fi
+        
+        echo "📊 Pod Status:"
+        kubectl get pods -n ryha-searxng
+        
+        echo "=================================================="
+        echo "🚀 Deployment completed successfully!"
+        echo "🔍 Your ultra-fast SearXNG is now running on Azure Kubernetes!"
