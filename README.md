@@ -37,45 +37,40 @@
 
 ---
 
-## 🚀 **Quick Deploy (1-Click Azure Deployment)**
+## 🆓 **COMPLETELY FREE DEPLOYMENT (15 Minutes)**
 
-### **Prerequisites**
-- Azure account with credits (works with free tier!)
-- Fork this repository to your GitHub account
+### **🏆 RECOMMENDED: Azure Cloud Shell (100% FREE & AUTOMATED)**
 
-### **Option 1: Automated GitHub Actions Deployment**
+**Perfect for beginners - No software installation needed!**
 
-1. **Fork this repository** to your GitHub account
-2. **Set up Azure Service Principal** (see [Azure Setup Guide](#azure-setup))
-3. **Configure GitHub Secrets** (see [GitHub Secrets Setup](#github-secrets))
-4. **Push to main branch** or trigger workflow manually
-5. **Done!** Your ultra-fast SearXNG will be live in 10 minutes
+1. **Open Azure Cloud Shell**: Go to [portal.azure.com](https://portal.azure.com), click Cloud Shell icon (>_)
+2. **Run auto-deploy script**:
+   ```bash
+   git clone https://github.com/velluraju/ryha-ultra-searxng.git
+   cd ryha-ultra-searxng
+   chmod +x scripts/deploy-azure.sh
+   ./scripts/deploy-azure.sh
+   ```
+3. **Done!** Your ultra-fast SearXNG will be live in 15 minutes
 
-### **Option 2: Manual kubectl Deployment**
+**Cost: $0 - Uses your Azure student credits (lasts 12+ years!)**
 
-```bash
-# Clone repository
-git clone https://github.com/velluraju/ryha-ultra-searxng.git
-cd ryha-ultra-searxng
+### **🌐 Other FREE Deployment Options:**
 
-# Connect to your AKS cluster
-az aks get-credentials --resource-group YOUR_RESOURCE_GROUP --name YOUR_AKS_CLUSTER
+- **[GitHub Codespaces](docs/FREE-DEPLOYMENT.md#method-2-github-codespaces-100-free)** - Cloud development environment
+- **[Local Windows](docs/FREE-DEPLOYMENT.md#method-3-local-machine-windows)** - PowerShell deployment script  
+- **[Azure Web Portal](docs/FREE-DEPLOYMENT.md#method-4-azure-web-portal-fixed-for-free)** - Web interface deployment
+- **[GitHub Actions](docs/FREE-DEPLOYMENT.md#github-actions-automated)** - Automated CI/CD pipeline
 
-# Deploy everything
-kubectl apply -f kubernetes/
+### **📚 Complete FREE Deployment Guide**
+**👉 See [FREE-DEPLOYMENT.md](docs/FREE-DEPLOYMENT.md) for detailed instructions for all methods**
 
-# Get your public IP
-kubectl get service ryha-searxng-service -n ryha-searxng --watch
-```
-
-### **Option 3: Azure Cloud Shell (Easiest)**
-
-```bash
-# In Azure Cloud Shell (https://shell.azure.com)
-git clone https://github.com/velluraju/ryha-ultra-searxng.git
-cd ryha-ultra-searxng
-./scripts/deploy-azure.sh
-```
+### **🐳 Azure Web Portal Support**
+This repository includes a production-ready `Dockerfile` for Azure web portal deployment:
+- ✅ Pre-configured with ultra-fast settings
+- ✅ Optimized for Azure Container Apps  
+- ✅ Includes all 40+ search engines
+- ✅ Port 8080 configuration ready
 
 ---
 
